@@ -1,1 +1,93 @@
-% todo: make document with background information and notes on lectures
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb, amsfonts}
+\let\Bbbk\relax
+\usepackage{newtxtext}  
+\usepackage{bm} 
+\usepackage[a4paper,
+  left=3.5cm, right=3.5cm,
+  top=2.5cm,  bottom=2.5cm]{geometry}    
+\usepackage[english]{babel}
+\usepackage[protrusion=true, expansion=true]{microtype}
+\frenchspacing
+\usepackage{graphicx}  
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{xcolor}
+\definecolor{darkgreen}{cmyk}{1,0,1,0.5}
+
+\usepackage[
+  colorlinks = true,
+  linkcolor  = black,
+  citecolor  = blue, 
+  urlcolor   = blue,
+  pdfborder  = {0 0 0}
+]{hyperref}
+
+\usepackage[numbers, sort&compress]{natbib}
+\usepackage{booktabs, array}
+\usepackage[all]{nowidow}
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=4pt, partopsep=0pt}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, 3d, positioning} 
+\usepackage{tikz-3dplot}
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalsize\bfseries}{\Roman{section}.}{0.5em}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalsize\itshape}{\Alph{subsection}.}{0.5em}{}
+\titleformat{\subsubsection}[runin]
+  {\normalsize\itshape}{}{0em}{}[:]
+\titlespacing*{\section}{0pt}{6pt plus 2pt}{3pt}
+\titlespacing*{\subsection}{0pt}{5pt plus 1pt}{2pt}
+\titlespacing*{\subsubsection}{0pt}{4pt}{4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+\newcommand{\acrorl}[1]{\textcolor{blue}{#1}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Sp}{\mathbb{S}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+% \newcommand{\H}{\mathbb{H}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\cF}{{\mathcal F}}
+\newcommand{\cL}{{\mathcal L}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\hypersetup{
+  pdfsubject = {MSR Research Notes},
+  pdftitle   = {MSR Research Notes},
+  pdfauthor  = {Gabriel Rodriguez}
+}
+
+\usepackage{titling}
+\setlength{\droptitle}{-2em}
+\pretitle{\vspace*{0.5ex}\centering\Large\bfseries\textsc}
+\posttitle{\par\vspace{0.5ex}}
+\preauthor{\centering\normalsize}
+\postauthor{\par\vspace{0.2ex}}
+\title{Reinforcement Learning \& Control Notes}
+\author{Gabriel Rodriguez}
+
+\begin{document}
+\maketitle
+
+\section{Notes}
+
+\begin{itemize}
+    \item KL divergence
+    \item Soft max
+    \item Go thru the handwritten notes and lectures
+\end{itemize}
+
+\newpage
+\bibliographystyle{IEEEtranN} % or plain, alpha, ieeetr, acm, etc.
+\bibliography{refs}
+\end{document}
