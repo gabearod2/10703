@@ -62,8 +62,8 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 
 \hypersetup{
-  pdfsubject = {MSR Research Notes},
-  pdftitle   = {MSR Research Notes},
+  pdfsubject = {Deep RL + Control Notes},
+  pdftitle   = {Deep RL + Control Notes},
   pdfauthor  = {Gabriel Rodriguez}
 }
 
@@ -79,12 +79,23 @@
 \begin{document}
 \maketitle
 
-\section{Notes}
+\section{Useful background information}
 
 \begin{itemize}
-    \item KL divergence
-    \item Soft max
-    \item Go thru the handwritten notes and lectures
+    \item \textit{KL divergence.} The Kullback-Leibler (KL) divergence is a measure of how different an approximate probability distribution $\mathcal{Q}$ is from a true probability distribtion $\mathcal{P}$. It is defined as 
+    \begin{equation}
+      D_{KL}(\mathcal{P} \| \mathcal{Q}) = \sum_{x\in\mathcal{X}} \mathcal{P}(x) \log \frac{\mathcal{P}(x)}{\mathcal{Q}(x)}.
+    \end{equation}
+    \item \textit{Soft max function.} Activation function that converts raw output scores into probabilities by taking the exponential of each output and normalizing these values by dividing by the sum of all the exponentials. This process ensures the output values are in the range (0,1) and sum up to 1, making them inidividual probabilities. Therefore, the softmax output for each dimension represents the model's predicted probability that the input belongs to that dimension's corresponding class. It is defined as 
+    \begin{equation}
+      \operatorname{softmax}(x)_i = \frac{\exp{x_i}}{\sum_j \exp{x_j}}
+    \end{equation}
+\end{itemize}
+
+\section{Definitions}
+\begin{itemize}
+  \item Value function: $V^\pi(s) = $ expected future reward starting at state $s$, then using policy $\pi$.
+  \item $Q$ function: $Q^\pi(s, a) = $ expected future reward starting at state $s$, taking action $a$, then using policy $\pi$.
 \end{itemize}
 
 \newpage
