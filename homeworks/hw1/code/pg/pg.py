@@ -63,7 +63,7 @@ class PolicyGradient(nn.Module):
         self.actor.to(self.device)
         self.actor.to(self.device)
         self.optim_actor = optim.Adam(self.actor.parameters(), lr_actor)
-        self.optim_critic = optim.Adam(self.actor.parameters(), lr_critic)
+        self.optim_critic = optim.Adam(self.critic.parameters(), lr_critic)
         pass
         # END STUDENT SOLUTION
 
