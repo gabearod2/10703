@@ -43,6 +43,8 @@ class PolicyGradient(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_layer_size, action_size),
             # BEGIN STUDENT SOLUTION
+            # Output will be linear logits.
+            # This is labeled as "score = h_\theta(s, a)" in lecture03.
             # END STUDENT SOLUTION
         )
 
@@ -51,11 +53,17 @@ class PolicyGradient(nn.Module):
             nn.Linear(state_size, hidden_layer_size),
             nn.ReLU(),
             # BEGIN STUDENT SOLUTION
+            # Output will be scalar Value estimate
+            nn.Linear(hidden_layer_size, 1),
             # END STUDENT SOLUTION
         )
 
         # initialize networks, optimizers, move networks to device
         # BEGIN STUDENT SOLUTION
+        self.actor.to(self.device)
+        self.actor.to(self.device)
+        self.optim_actor = optim.Adam(self.actor.parameters(), lr_actor)
+        self.optim_critic = optim.Adam(self.actor.parameters(), lr_critic)
         pass
         # END STUDENT SOLUTION
 
@@ -65,7 +73,11 @@ class PolicyGradient(nn.Module):
     def get_action(self, state, stochastic):
         # if stochastic, sample using the action probabilities, else get the argmax
         # BEGIN STUDENT SOLUTION
-        pass
+        logits = self.actor(state)
+        if stochastic:
+            return torch.distributions.Categorical(logits=logits).sample()
+        else:
+            return torch.argmax(logits)
         # END STUDENT SOLUTION
 
     def calculate_n_step_bootstrap(self, rewards_tensor, values):
@@ -82,6 +94,28 @@ class PolicyGradient(nn.Module):
 
         # train the agent using states, actions, and rewards
         # BEGIN STUDENT SOLUTION
+
+        # STEP 1: retrieve the sampled N trajectories
+        states = torch.as_tensor(np.array(states), dtype=torch.float32, device=self.device)
+        actions = torch.as_tensor(np.array(actions), dtype=torch.int64, device=self.device)
+        rewards = torch.as_tensor(np.array(rewards), dtype=torch.float32, device=self.device)
+        num_steps = rewards.shape[0]
+
+        if self.mode == "REINFORCE":
+            # STEP 2: Compute every reward-to-go 
+            rewards_to_go = torch.zeros(num_steps, dtype=torch.float32, device=self.device)
+            reward_to_go = 0.0
+            for step in reversed(range(num_steps)):
+                reward_to_go = rewards[step] + self.gamma * reward_to_go
+                rewards_to_go[step] = reward_to_go
+
+            # STEP 3: estimate the policy gradient
+            logits = self.actor(states) 
+            log_probs = torch.distributions.Categorical(logits=logits).log_prob(actions)
+            actor_loss = -(log_probs * rewards_to_go).mean() # mean over N trajectories
+            self.optim_actor.zero_grad()
+            actor_loss.backward() # computes gradients
+            self.optim_actor.step() # updates policy
         pass
         # END STUDENT SOLUTION
 
@@ -90,7 +124,35 @@ class PolicyGradient(nn.Module):
 
         # run the agent through the environment num_episodes times for at most max steps
         # BEGIN STUDENT SOLUTION
-        pass
+        for _ in range(num_episodes):
+            state, _ = env.reset()
+            states = []
+            actions = []
+            rewards = []
+            episode_rewards = 0.0
+
+            for _ in range(max_steps):
+                state_tensor = torch.as_tensor(state, dtype=torch.float32, device=self.device)
+                action = self.get_action(state_tensor, stochastic=train)
+                action_item = action.item()
+
+                # step the environment using sampled action and record results
+                next_state, reward, terminated, truncated, _ = env.step(action_item)
+
+                states.append(state)
+                actions.append(action_item)
+                rewards.append(reward)
+                episode_rewards += reward
+
+                state = next_state
+
+                if terminated or truncated:
+                    break
+
+            # perform update at the end of each episode
+            if train:
+                self.train(states, actions, rewards)
+            total_rewards.append(episode_rewards) # NOTE: undiscounted, as desired
         # END STUDENT SOLUTION
         return total_rewards
 
@@ -111,7 +173,30 @@ def graph_agents(
 
     # graph the data mentioned in the homework pdf
     # BEGIN STUDENT SOLUTION
-    pass
+    num_checkpoints = num_episodes // graph_every
+    all_trials = np.zeros((len(agents), num_checkpoints))
+    for trial_idx, agent in enumerate(agents):
+        for checkpoint in range(num_checkpoints):
+            # train for graph_every number of episodes
+            agent.train() # train mode
+            agent.run(env, max_steps, graph_every, train=True)
+
+            # freeze the current policy and evaluate
+            agent.train(False)  # eval mode
+            test_rewards = agent.run(env, max_steps, num_test_episodes, train=False)
+            all_trials[trial_idx, checkpoint] = np.mean(test_rewards)
+
+            print(
+                f"algo: {graph_name} ", 
+                f"trial num: {trial_idx+1}/{len(agents)} ",
+                f"episode num: {(checkpoint+1)*graph_every}/{num_episodes} ", 
+                f"mean test reward: {all_trials[trial_idx, checkpoint]:.2f}"
+            )
+
+    # average along trial number axis for plotting
+    average_total_rewards = all_trials.mean(axis=0) 
+    min_total_rewards = all_trials.min(axis=0)
+    max_total_rewards = all_trials.max(axis=0)
     # END STUDENT SOLUTION
 
     # plot the total rewards
@@ -175,7 +260,35 @@ def main():
 
     # init args, agents, and call graph_agents on the initialized agents
     # BEGIN STUDENT SOLUTION
-    pass
+    global graph_dir
+    graph_dir = Path("graphs")
+
+    env = gym.make(args.env_name)
+    state_size = env.observation_space.shape[0]
+    action_size = env.action_space.n
+
+    device = torch.device("cpu")
+
+    agents = [
+        PolicyGradient(
+            state_size,
+            action_size,
+            mode=args.mode,
+            n=args.n,
+            device=device,
+        )
+        for _ in range(args.num_runs)
+    ]
+
+    graph_agents(
+        args.mode,
+        agents,
+        env,
+        args.max_steps,
+        args.num_episodes,
+        args.num_test_episodes,
+        args.graph_every,
+    )
     # END STUDENT SOLUTION
 
 
