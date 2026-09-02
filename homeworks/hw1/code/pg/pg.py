@@ -113,9 +113,35 @@ class PolicyGradient(nn.Module):
             logits = self.actor(states) 
             log_probs = torch.distributions.Categorical(logits=logits).log_prob(actions)
             actor_loss = -(log_probs * rewards_to_go).mean() # mean over N trajectories
+
+            # update actor
             self.optim_actor.zero_grad()
             actor_loss.backward() # computes gradients
             self.optim_actor.step() # updates policy
+        elif self.mode == "REINFORCE_WITH_BASELINE":
+            # STEP 2: Compute every reward-to-go 
+            rewards_to_go = torch.zeros(num_steps, dtype=torch.float32, device=self.device)
+            reward_to_go = 0.0
+            for step in reversed(range(num_steps)):
+                reward_to_go = rewards[step] + self.gamma * reward_to_go
+                rewards_to_go[step] = reward_to_go
+
+            # STEP 3: estimate the policy and critic gradients
+            logits = self.actor(states) 
+            baselines = self.critic(states).squeeze(-1)
+            log_probs = torch.distributions.Categorical(logits=logits).log_prob(actions)
+            actor_loss = -(log_probs * (rewards_to_go - baselines.detach())).mean() # mean over N trajectories
+            critic_loss = ((rewards_to_go - baselines)**2).mean()
+
+            # update actor/policy
+            self.optim_actor.zero_grad()
+            actor_loss.backward() # computes gradients
+            self.optim_actor.step() # updates policy
+
+            # update critic/baseline
+            self.optim_critic.zero_grad()
+            critic_loss.backward()
+            self.optim_critic.step()
         pass
         # END STUDENT SOLUTION
 
